@@ -1,231 +1,130 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  SafeAreaView,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 
 const App = () => {
   const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
 
-  const handleButtonPress = (buttonValue) => {
-    setInput((prevInput) => prevInput + buttonValue);
+  const handlePress = (value) => {
+    setInput((prevInput) => prevInput + value);
   };
 
-  const handleEqualsPress = () => {
+  const calculateResult = () => {
     try {
-      const result = eval(input); // 使用eval函数计算输入的表达式
-      setInput(result.toString()); // 将计算结果设置为新的输入内容
+      setResult(eval(input));
+      setInput('');
     } catch (error) {
-      setInput('Error'); // 如果计算出错，则显示"Error"
+      setResult('Error');
     }
   };
 
-    const handleClearPress = () => {
-      setInput('');
-    };
+  const clearInput = () => {
+    setInput('');
+    setResult('');
+  };
 
-    const handleDeletePress = () => {
-      setInput((prevInput) => prevInput.slice(0, -1));
-    };
-
+  const buttons = [
+    ['1', '2', '3', '+'],
+    ['4', '5', '6', '-'],
+    ['7', '8', '9', '*'],
+    ['.', '0', '=', '/'],
+    ['', '', '', 'C'],
+  ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.resultContainer}>
+        <Text style={styles.resultText}>{result}</Text>
+      </View>
       <View style={styles.inputContainer}>
         <Text style={styles.inputText}>{input}</Text>
       </View>
-
-      <View style={styles.buttonContainer}>
-        <View style={styles.numberButtonContainer}>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('7')}
-            >
-              <Text style={styles.buttonText}>7</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('8')}
-            >
-              <Text style={styles.buttonText}>8</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('9')}
-            >
-              <Text style={styles.buttonText}>9</Text>
-            </TouchableOpacity>
+      <View style={styles.buttonsContainer}>
+        {buttons.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.row}>
+            {row.map((button, buttonIndex) => (
+              <TouchableOpacity
+                key={buttonIndex}
+                style={[
+                  styles.button,
+                  button === '=' ? styles.equalButton : null,
+                ]}
+                onPress={() => {
+                  if (button === 'C') {
+                    clearInput();
+                  } else if (button === '=') {
+                    calculateResult();
+                  } else {
+                    handlePress(button);
+                  }
+                }}
+              >
+                <Text style={styles.buttonText}>{button}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('4')}
-            >
-              <Text style={styles.buttonText}>4</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('5')}
-            >
-              <Text style={styles.buttonText}>5</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('6')}
-            >
-              <Text style={styles.buttonText}>6</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('1')}
-            >
-              <Text style={styles.buttonText}>1</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('2')}
-            >
-              <Text style={styles.buttonText}>2</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('3')}
-            >
-              <Text style={styles.buttonText}>3</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleButtonPress('0')}
-            >
-              <Text style={styles.buttonText}>0</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.operatorButtonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleButtonPress('+')}
-          >
-            <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleButtonPress('-')}
-          >
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleButtonPress('*')}
-          >
-            <Text style={styles.buttonText}>*</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleButtonPress('/')}
-          >
-            <Text style={styles.buttonText}>/</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
-
-      <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity
-          style={styles.bottomButton}
-          onPress={handleClearPress}
-        >
-          <Text style={styles.bottomButtonText}>清空</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.bottomButton}
-          onPress={handleDeletePress}
-        >
-          <Text style={styles.bottomButtonText}>删除</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.equalsButton} onPress={handleEqualsPress}>
-        <Text style={styles.equalsButtonText}>=</Text>
-      </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  inputContainer: {
-    backgroundColor: '#f2f2f2',
-    padding: 10,
-    marginBottom: 20,
-    width: '80%',
+  resultContainer: {
+    flex: 2,
     justifyContent: 'center',
     alignItems: 'flex-end',
+    paddingRight: 20,
   },
-  inputText: {
-    fontSize: 24,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
+  inputContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingRight: 20,
   },
-  numberButtonContainer: {
-    marginRight: 10,
-  },
-  operatorButtonContainer: {
-    marginLeft: 10,
+  buttonsContainer: {
+    flex: 7,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: 10,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    flex: 1,
   },
   button: {
-    backgroundColor: '#DDDDDD',
-    borderRadius: 5,
-    padding: 10,
-    margin: 5,
-    width: 80,
-    height: 80,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+    margin: 10,
+  },
+  equalButton: {
+    backgroundColor: '#007AFF',
   },
   buttonText: {
-    fontSize: 24,
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#333',
   },
-  equalsButton: {
-    backgroundColor: '#DDDDDD',
-    borderRadius: 5,
-    padding: 10,
-    marginTop: 10,
+  inputText: {
+    fontSize: 60,
+    color: '#333',
   },
-  equalsButtonText: {
-    fontSize: 24,
-    textAlign: 'center',
-  },
-
-  bottomButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  bottomButton: {
-    backgroundColor: '#DDDDDD',
-    borderRadius: 5,
-    padding: 10,
-    marginHorizontal: 5,
-    width: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bottomButtonText: {
-    fontSize: 18,
+  resultText: {
+    fontSize: 80,
+    color: '#333',
   },
 });
 
