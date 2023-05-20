@@ -107,12 +107,12 @@ const App = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.resultContainer}>
-        <Text style={styles.resultText} numberOfLines={2}>
+        <Text testID='resultText' style={styles.resultText}>
           {result}
         </Text>
       </View>
       <View style={styles.inputContainer}>
-        <Text style={styles.inputText} numberOfLines={2}>
+        <Text style={styles.inputText}>
           {input}
         </Text>
       </View>
