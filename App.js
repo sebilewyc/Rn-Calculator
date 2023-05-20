@@ -14,15 +14,15 @@ const App = () => {
 
   const handlePress = (value) => {
     setInput((prevInput) => {
-      // 检查是否连续输入运算符
+      // Check if consecutive operators are entered
       if (/[+\-*/.]$/.test(prevInput) && /[+\-*/.]/.test(value)) {
-        return prevInput.replace(/[+\-*/.]$/, value); // 用新输入的运算符替换掉旧的运算符
+        return prevInput.replace(/[+\-*/.]$/, value); // Replace the old operator with the new one
       }
 
-      // 检查是否按下"="号后直接按下运算符
+      // Check if an operator is pressed immediately after "="
       if (prevInput === '' && /[+\-*/.]/.test(value)) {
         if (result !== '') {
-          return result + value; // 将前一步计算的结果自动拼接到运算符前
+          return result + value; // Automatically concatenate the previous result before the operator
         }
       }
 
@@ -30,59 +30,60 @@ const App = () => {
     });
   };
 
-const calculateResult = () => {
-  try {
-    const validInput = validateInput();
-    // 使用正则截断用户输入的部分，如果首个字符是以-开头，说明是负值，需要将-号和数字视为同一部分
-    const parts = validInput.match(/^-?\d+(?:\.\d+)?|[+\-*/.]|\d+(?:\.\d+)?/g);
-    let parsedResult = Decimal(parts[0]);
+  const calculateResult = () => {
+    try {
+      const validInput = validateInput();
+      // Split the input into parts using regex. If the first character starts with "-", it indicates a negative value, and we need to treat the "-" sign and the following number as one part.
+      const parts = validInput.match(
+        /^-?\d+(?:\.\d+)?|[+\-*/.]|\d+(?:\.\d+)?/g
+      );
+      let parsedResult = Decimal(parts[0]);
 
-    for (let i = 1; i < parts.length; i += 2) {
-      const operator = parts[i];
-      let operand = Decimal(parts[i + 1]);
+      for (let i = 1; i < parts.length; i += 2) {
+        const operator = parts[i];
+        let operand = Decimal(parts[i + 1]);
 
-      if (
-        operator === '-' &&
-        i + 2 < parts.length &&
-        /^\d+(?:\.\d+)?$/.test(parts[i + 2])
-      ) {
-        // 如果当前运算符是 "-"，且后面还有数字，则将 "-" 和数字视为同一部分
-        operand = operand.negated();
-        i++; // 跳过下一个数字
+        if (
+          operator === '-' &&
+          i + 2 < parts.length &&
+          /^\d+(?:\.\d+)?$/.test(parts[i + 2])
+        ) {
+          // If the current operator is "-", and there is a number following it, consider the "-" sign and the number as one part.
+          operand = operand.negated();
+          i++; // Skip the next number
+        }
+
+        switch (operator) {
+          case '+':
+            parsedResult = parsedResult.plus(operand);
+            break;
+          case '-':
+            parsedResult = parsedResult.minus(operand);
+            break;
+          case '*':
+            parsedResult = parsedResult.times(operand);
+            break;
+          case '/':
+            parsedResult = parsedResult.dividedBy(operand);
+            break;
+          default:
+            throw new Error('Invalid operator');
+        }
       }
 
-      switch (operator) {
-        case '+':
-          parsedResult = parsedResult.plus(operand);
-          break;
-        case '-':
-          parsedResult = parsedResult.minus(operand);
-          break;
-        case '*':
-          parsedResult = parsedResult.times(operand);
-          break;
-        case '/':
-          parsedResult = parsedResult.dividedBy(operand);
-          break;
-        default:
-          throw new Error('Invalid operator');
-      }
+      setResult(parsedResult.toString());
+      setInput('');
+    } catch (error) {
+      setResult('Error');
     }
-
-    setResult(parsedResult.toString());
-    setInput('');
-  } catch (error) {
-    setResult('Error');
-  }
-};
-
+  };
 
   const validateInput = () => {
     let validInput = input;
-    validInput = validInput.replace(/[^0-9+\-*/.]/g, ''); // 移除非数字、加减乘除和小数点的字符
-    validInput = validInput.replace(/([+\-*/.])[+\-*/.]+/g, '$1'); // 连续的运算符只保留第一个
-    validInput = validInput.replace(/^[*/]/, ''); // 去除开头的乘除符号
-    validInput = validInput.replace(/[+\-*/.]$/, ''); // 去除末尾的运算符和小数点
+    validInput = validInput.replace(/[^0-9+\-*/.]/g, ''); // Remove characters other than numbers, operators (+-*/), and decimal point.
+    validInput = validInput.replace(/([+\-*/.])[+\-*/.]+/g, '$1'); // Keep only the first operator in consecutive operators.
+    validInput = validInput.replace(/^[*/]/, ''); // Remove leading multiplication and division symbols.
+    validInput = validInput.replace(/[+\-*/.]$/, ''); // Remove trailing operators and decimal point.
     return validInput;
   };
 
