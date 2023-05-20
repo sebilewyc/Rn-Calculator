@@ -6,35 +6,56 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
+import { Decimal } from 'decimal.js';
 
 const App = () => {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
 
-const handlePress = (value) => {
-  setInput((prevInput) => {
-    // 检查是否连续输入运算符
-    if (/[+\-*/.]$/.test(prevInput) && /[+\-*/.]/.test(value)) {
-      return prevInput.replace(/[+\-*/.]$/, value); // 用新输入的运算符替换掉旧的运算符
-    }
-    
-    // 检查是否按下"="号后直接按下运算符
-    if (prevInput === "" && /[+\-*/.]/.test(value)) {
-      if (result !== "") {
-        return result + value; // 将前一步计算的结果自动拼接到运算符前
+  const handlePress = (value) => {
+    setInput((prevInput) => {
+      // 检查是否连续输入运算符
+      if (/[+\-*/.]$/.test(prevInput) && /[+\-*/.]/.test(value)) {
+        return prevInput.replace(/[+\-*/.]$/, value); // 用新输入的运算符替换掉旧的运算符
       }
-    }
-    
-    return prevInput + value;
-  });
-};
 
+      // 检查是否按下"="号后直接按下运算符
+      if (prevInput === '' && /[+\-*/.]/.test(value)) {
+        if (result !== '') {
+          return result + value; // 将前一步计算的结果自动拼接到运算符前
+        }
+      }
 
+      return prevInput + value;
+    });
+  };
 
   const calculateResult = () => {
     try {
       const validInput = validateInput();
-      setResult(eval(validInput));
+      const parts = validInput.match(/[+\-*/.]|\d+(?:\.\d+)?/g); // 使用正则截断用户输入的部分
+      let parsedResult = Decimal(parts[0]);
+      for (let i = 1; i < parts.length; i += 2) {
+        const operator = parts[i];
+        const operand = Decimal(parts[i + 1]);
+        switch (operator) {
+          case '+':
+            parsedResult = parsedResult.plus(operand);
+            break;
+          case '-':
+            parsedResult = parsedResult.minus(operand);
+            break;
+          case '*':
+            parsedResult = parsedResult.times(operand);
+            break;
+          case '/':
+            parsedResult = parsedResult.dividedBy(operand);
+            break;
+          default:
+            throw new Error('Invalid operator');
+        }
+      }
+      setResult(parsedResult.toString());
       setInput('');
     } catch (error) {
       setResult('Error');
@@ -46,7 +67,7 @@ const handlePress = (value) => {
     validInput = validInput.replace(/[^0-9+\-*/.]/g, ''); // 移除非数字、加减乘除和小数点的字符
     validInput = validInput.replace(/([+\-*/.])[+\-*/.]+/g, '$1'); // 连续的运算符只保留第一个
     validInput = validInput.replace(/^[*/]/, ''); // 去除开头的乘除符号
-    validInput = validInput.replace(/([+\-*/.]$)/, ''); // 去除末尾的运算符和小数点
+    validInput = validInput.replace(/[+\-*/.]$/, ''); // 去除末尾的运算符和小数点
     return validInput;
   };
 
