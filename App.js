@@ -30,37 +30,52 @@ const App = () => {
     });
   };
 
-  const calculateResult = () => {
-    try {
-      const validInput = validateInput();
-      const parts = validInput.match(/[+\-*/.]|\d+(?:\.\d+)?/g); // 使用正则截断用户输入的部分
-      let parsedResult = Decimal(parts[0]);
-      for (let i = 1; i < parts.length; i += 2) {
-        const operator = parts[i];
-        const operand = Decimal(parts[i + 1]);
-        switch (operator) {
-          case '+':
-            parsedResult = parsedResult.plus(operand);
-            break;
-          case '-':
-            parsedResult = parsedResult.minus(operand);
-            break;
-          case '*':
-            parsedResult = parsedResult.times(operand);
-            break;
-          case '/':
-            parsedResult = parsedResult.dividedBy(operand);
-            break;
-          default:
-            throw new Error('Invalid operator');
-        }
+const calculateResult = () => {
+  try {
+    const validInput = validateInput();
+    // 使用正则截断用户输入的部分，如果首个字符是以-开头，说明是负值，需要将-号和数字视为同一部分
+    const parts = validInput.match(/^-?\d+(?:\.\d+)?|[+\-*/.]|\d+(?:\.\d+)?/g);
+    let parsedResult = Decimal(parts[0]);
+
+    for (let i = 1; i < parts.length; i += 2) {
+      const operator = parts[i];
+      let operand = Decimal(parts[i + 1]);
+
+      if (
+        operator === '-' &&
+        i + 2 < parts.length &&
+        /^\d+(?:\.\d+)?$/.test(parts[i + 2])
+      ) {
+        // 如果当前运算符是 "-"，且后面还有数字，则将 "-" 和数字视为同一部分
+        operand = operand.negated();
+        i++; // 跳过下一个数字
       }
-      setResult(parsedResult.toString());
-      setInput('');
-    } catch (error) {
-      setResult('Error');
+
+      switch (operator) {
+        case '+':
+          parsedResult = parsedResult.plus(operand);
+          break;
+        case '-':
+          parsedResult = parsedResult.minus(operand);
+          break;
+        case '*':
+          parsedResult = parsedResult.times(operand);
+          break;
+        case '/':
+          parsedResult = parsedResult.dividedBy(operand);
+          break;
+        default:
+          throw new Error('Invalid operator');
+      }
     }
-  };
+
+    setResult(parsedResult.toString());
+    setInput('');
+  } catch (error) {
+    setResult('Error');
+  }
+};
+
 
   const validateInput = () => {
     let validInput = input;
